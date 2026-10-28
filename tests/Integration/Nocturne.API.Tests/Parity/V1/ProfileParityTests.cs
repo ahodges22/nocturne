@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 using System.Net.Http.Json;
+using FluentAssertions;
 using Nocturne.API.Tests.Integration.Infrastructure;
 using Nocturne.Core.Models;
 using Xunit;
@@ -212,6 +214,61 @@ public class ProfileParityTests : ParityTestBase
         };
 
         await AssertPostParityAsync("/api/v1/profile", profile);
+    }
+
+    #endregion
+
+    #region Zero values
+
+    [Theory]
+    [InlineData("/api/v1/profile.json")]
+    [InlineData("/api/v1/profiles.json")]
+    [InlineData("/api/v1/profile/current")]
+    [InlineData("/api/v3/profile")]
+    public async Task LegacyReads_KeepProfileZeroValues_LikeNightscout(string path)
+    {
+        var profile = TestDataFactory.CreateProfile();
+        foreach (var data in profile.Store.Values)
+        {
+            data.Dia = 0;
+            data.CarbsHr = 0;
+            data.Delay = 0;
+            foreach (var schedule in new[] { data.Basal, data.CarbRatio, data.Sens, data.TargetLow, data.TargetHigh })
+                schedule[0].Value = 0;
+        }
+        await SeedProfileAsync(profile);
+
+        using var expectedResponse = await GetNightscoutClientForPath(path).GetAsync(path);
+        using var actualResponse = await NocturneClient.GetAsync(path);
+        expectedResponse.EnsureSuccessStatusCode();
+        actualResponse.EnsureSuccessStatusCode();
+        var expected = JsonNode.Parse(await expectedResponse.Content.ReadAsStringAsync())!;
+        var actual = JsonNode.Parse(await actualResponse.Content.ReadAsStringAsync())!;
+        if (path.StartsWith("/api/v3"))
+        {
+            expected = expected["result"]!;
+            actual = actual["result"]!;
+        }
+        if (expected is JsonArray) expected = expected.AsArray().Should().ContainSingle().Subject!;
+        if (actual is JsonArray) actual = actual.AsArray().Should().ContainSingle().Subject!;
+
+        using var assertions = new FluentAssertions.Execution.AssertionScope();
+        foreach (var store in profile.Store.Keys)
+        {
+            foreach (var field in new[] { "dia", "carbs_hr", "delay" })
+            {
+                expected["store"]![store]![field]!.GetValue<double>().Should().Be(0);
+                JsonNode.DeepEquals(actual["store"]![store]![field], expected["store"]![store]![field])
+                    .Should().BeTrue($"{path} must serve {field} like Nightscout");
+            }
+            foreach (var schedule in new[] { "basal", "carbratio", "sens", "target_low", "target_high" })
+            {
+                var value = expected["store"]![store]![schedule]![0]!["value"];
+                value!.GetValue<double>().Should().Be(0);
+                JsonNode.DeepEquals(actual["store"]![store]![schedule]![0]!["value"], value)
+                    .Should().BeTrue($"{path} must serve {schedule}.value like Nightscout");
+            }
+        }
     }
 
     #endregion

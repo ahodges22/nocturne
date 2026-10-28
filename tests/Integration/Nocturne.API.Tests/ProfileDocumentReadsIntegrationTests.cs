@@ -337,6 +337,65 @@ public class ProfileDocumentReadsIntegrationTests : ApiIntegrationTestBase
         string.CompareOrdinal("aDoc", "BDoc").Should().BePositive("the tie between them is broken ordinally, descending");
     }
 
+    [Theory]
+    [InlineData("/api/v1/profile.json")]
+    [InlineData("/api/v1/profiles.json")]
+    [InlineData("/api/v1/profile/current")]
+    [InlineData("/api/v1/profile/5f8d0c1e8a7b4c3d9e5f0102")]
+    [InlineData("/api/v3/profile")]
+    [InlineData("/api/v3/profile/history/0")]
+    [InlineData("/api/v3/profile/5f8d0c1e8a7b4c3d9e5f0102")]
+    [InlineData("/api/v2/ddata")]
+    [InlineData("/api/v2/ddata/at")]
+    [InlineData("/api/v2/ddata/raw")]
+    public async Task LegacyReads_KeepProfileZeroValues_AndOmitUnsetNullableFields(string path)
+    {
+        var client = CreateAuthenticatedClient();
+        var document = JsonSerializer.SerializeToNode(
+            Document(NewerId, "Night", DateTimeOffset.UtcNow.AddHours(-1), "Day", "Night"))!;
+        foreach (var store in document["store"]!.AsObject())
+        {
+            foreach (var field in new[] { "dia", "carbs_hr", "delay" })
+                store.Value![field] = 0;
+            foreach (var schedule in new[] { "basal", "carbratio", "sens", "target_low", "target_high" })
+                store.Value![schedule]![0]!["value"] = 0;
+            store.Value!["basal"]!.AsArray().Add(new JsonObject { ["time"] = "06:00", ["value"] = 0.8 });
+        }
+        await PostAsync(client, "/api/v1/profile", document);
+
+        var body = await GetAsync(client, path);
+        if (path.StartsWith("/api/v2/ddata"))
+            body = body.GetProperty("profiles");
+        var profile = body.ValueKind == JsonValueKind.Array
+            ? body.EnumerateArray().Should().ContainSingle().Subject
+            : body;
+
+        using var assertions = new FluentAssertions.Execution.AssertionScope();
+        StoresOf(profile).Should().BeEquivalentTo("Day", "Night");
+        foreach (var store in profile.GetProperty("store").EnumerateObject())
+        {
+            foreach (var field in new[] { "dia", "carbs_hr", "delay" })
+            {
+                var present = store.Value.TryGetProperty(field, out var value);
+                present.Should().BeTrue($"{path} must serve {store.Name}.{field} at zero");
+                if (present) value.GetDouble().Should().Be(0);
+            }
+            foreach (var schedule in new[] { "basal", "carbratio", "sens", "target_low", "target_high" })
+            {
+                var present = store.Value.GetProperty(schedule)[0].TryGetProperty("value", out var value);
+                present.Should().BeTrue($"{path} must serve {store.Name}.{schedule}.value at zero");
+                if (present) value.GetDouble().Should().Be(0);
+            }
+            store.Value.GetProperty("basal")[1].GetProperty("value").GetDouble().Should().Be(0.8);
+            foreach (var field in new[]
+            {
+                "perGIvalues", "carbs_hr_high", "carbs_hr_medium", "carbs_hr_low",
+                "delay_high", "delay_medium", "delay_low",
+            })
+                store.Value.TryGetProperty(field, out _).Should().BeFalse($"unset nullable {field} stays absent");
+        }
+    }
+
     /// <summary>
     /// Counts the <c>therapy_settings</c> rows EF reads in the async flow that created it (all rows,
     /// whole rows, and ranked document ids), from

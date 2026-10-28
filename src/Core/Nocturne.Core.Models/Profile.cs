@@ -139,6 +139,7 @@ public class ProfileData
     /// Duration of insulin action in hours
     /// </summary>
     [JsonPropertyName("dia")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
     [JsonConverter(typeof(FlexibleDoubleConverter))]
     public double Dia { get; set; } = 3.0;
 
@@ -146,6 +147,7 @@ public class ProfileData
     /// Carbs absorption rate in grams per hour
     /// </summary>
     [JsonPropertyName("carbs_hr")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
     [JsonConverter(typeof(FlexibleIntConverter))]
     public int CarbsHr { get; set; } = 20;
 
@@ -153,6 +155,7 @@ public class ProfileData
     /// Carb absorption delay in minutes
     /// </summary>
     [JsonPropertyName("delay")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
     [JsonConverter(typeof(FlexibleIntConverter))]
     public int Delay { get; set; } = 20;
 
@@ -262,6 +265,7 @@ public class TimeValue
     public string Time { get; set; } = "00:00";
 
     [JsonPropertyName("value")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
     [JsonConverter(typeof(FlexibleDoubleConverter))]
     public double Value { get; set; }
 

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Nocturne.API.Tests.Configuration;
 
-/// <summary><see cref="NightscoutJsonOptions.OmitIndefiniteDuration"/>.</summary>
+/// <summary><see cref="NightscoutJsonOptions"/>.</summary>
 public class NightscoutJsonOptionsTests
 {
     private static JsonObject Serialize(Treatment treatment) =>
@@ -68,5 +68,44 @@ public class NightscoutJsonOptionsTests
         });
 
         served["duration"]!.GetValue<double>().Should().Be(25);
+    }
+
+    [Fact]
+    public void Profile_zero_values_are_served_while_unset_nullable_fields_stay_absent()
+    {
+        var profile = new ProfileData
+        {
+            Dia = 0,
+            CarbsHr = 0,
+            Delay = 0,
+            Basal = [new() { Value = 0 }],
+            CarbRatio = [new() { Value = 0 }],
+            Sens = [new() { Value = 0 }],
+            TargetLow = [new() { Value = 0 }],
+            TargetHigh = [new() { Value = 0 }],
+        };
+
+        var served = JsonNode.Parse(JsonSerializer.Serialize(profile, NightscoutJsonOptions.Create()))!.AsObject();
+
+        using var assertions = new FluentAssertions.Execution.AssertionScope();
+        foreach (var field in new[] { "dia", "carbs_hr", "delay" })
+        {
+            served.ContainsKey(field).Should().BeTrue($"{field} is required even at zero");
+            served[field]?.GetValue<double>().Should().Be(0);
+        }
+        foreach (var schedule in new[] { "basal", "carbratio", "sens", "target_low", "target_high" })
+        {
+            var entry = served[schedule]!.AsArray().Single()!.AsObject();
+            entry.ContainsKey("value").Should().BeTrue($"{schedule} entries require value even at zero");
+            entry["value"]?.GetValue<double>().Should().Be(0);
+        }
+        foreach (var field in new[]
+        {
+            "timezone", "units", "perGIvalues", "carbs_hr_high", "carbs_hr_medium", "carbs_hr_low",
+            "delay_high", "delay_medium", "delay_low",
+        })
+        {
+            served.ContainsKey(field).Should().BeFalse($"unset nullable {field} stays absent");
+        }
     }
 }
