@@ -295,6 +295,11 @@ public class ProfileProjectionService : IProfileProjectionService
             EnteredBy = head.EnteredBy,
             LoopSettings = head.LoopSettings,
             IsAPNSProduction = head.IsAPNSProduction,
+            DeviceToken = head.DeviceToken,
+            BundleIdentifier = head.BundleIdentifier,
+            TeamID = head.TeamID,
+            ExpirationDate = head.ExpirationDate,
+            OverridePresets = head.OverridePresets,
             IsExternallyManaged = head.IsExternallyManaged,
             Store = store,
         };

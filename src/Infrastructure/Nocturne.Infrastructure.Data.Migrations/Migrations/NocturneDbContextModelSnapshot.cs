@@ -9257,6 +9257,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("app");
 
+                    b.Property<string>("BundleIdentifier")
+                        .HasColumnType("text")
+                        .HasColumnName("bundle_identifier");
+
                     b.Property<int>("CarbsHr")
                         .HasColumnType("integer")
                         .HasColumnName("carbs_hr");
@@ -9313,6 +9317,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("device");
 
+                    b.Property<string>("DeviceToken")
+                        .HasColumnType("text")
+                        .HasColumnName("device_token");
+
                     b.Property<double>("Dia")
                         .HasColumnType("double precision")
                         .HasColumnName("dia");
@@ -9325,6 +9333,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("entered_by");
+
+                    b.Property<string>("ExpirationDate")
+                        .HasColumnType("text")
+                        .HasColumnName("expiration_date");
 
                     b.Property<bool?>("IsApnsProduction")
                         .HasColumnType("boolean")
@@ -9346,6 +9358,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.Property<string>("LoopSettingsJson")
                         .HasColumnType("jsonb")
                         .HasColumnName("loop_settings_json");
+
+                    b.Property<string>("OverridePresetsJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("override_presets_json");
 
                     b.Property<bool?>("PerGiValues")
                         .HasColumnType("boolean")
@@ -9373,6 +9389,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("sys_updated_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("TeamID")
+                        .HasColumnType("text")
+                        .HasColumnName("team_id");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid")

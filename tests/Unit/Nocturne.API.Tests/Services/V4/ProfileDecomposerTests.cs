@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Nocturne.API.Tests.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -35,6 +37,30 @@ public class ProfileDecomposerTests
             a.AuthType.Should().Be("ApiKey");
         });
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void MapToTherapySettings_CarriesTrioFieldsToEveryStore(bool present)
+    {
+        var fields = JsonNode.Parse(present ? TrioFields : "{}")!;
+        var profile = JsonSerializer.Deserialize<Nocturne.Core.Models.Profile>(fields.ToJsonString())!;
+        profile.Store = BuildProfile(stores: ["Default", "Weekday"]).Store;
+
+        foreach (var (name, data) in profile.Store)
+        {
+            var settings = ProfileDecomposer.MapToTherapySettings(profile, data, name, "doc:" + name, false, null);
+            var actual = JsonSerializer.SerializeToNode(settings, JsonSerializerOptions.Web)!;
+            foreach (var field in JsonNode.Parse(TrioFields)!.AsObject())
+                JsonNode.DeepEquals(actual[field.Key], fields[field.Key]).Should().BeTrue(field.Key);
+        }
+    }
+
+    private const string TrioFields = """
+        {"deviceToken":"trio-token","bundleIdentifier":"org.triodocs.Trio","teamID":"TRIOTEAM42",
+         "expirationDate":"2027-01-02T03:04:05.123456+05:30",
+         "overridePresets":[{"name":"Exercise","duration":45.5,"percentage":80,"target":110},{"name":"Name only"}]}
+        """;
 
     [Theory]
     [InlineData(true)]

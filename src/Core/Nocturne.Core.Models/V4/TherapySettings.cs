@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using NJsonSchema.Annotations;
 
@@ -102,6 +103,21 @@ public class TherapySettings : V4RecordBase, IProfileScoped
 
     /// <inheritdoc cref="Profile.IsAPNSProduction"/>
     public bool? IsAPNSProduction { get; set; }
+
+    /// <inheritdoc cref="Profile.DeviceToken"/>
+    public string? DeviceToken { get; set; }
+
+    /// <inheritdoc cref="Profile.BundleIdentifier"/>
+    public string? BundleIdentifier { get; set; }
+
+    /// <inheritdoc cref="Profile.TeamID"/>
+    public string? TeamID { get; set; }
+
+    /// <inheritdoc cref="Profile.ExpirationDate"/>
+    public string? ExpirationDate { get; set; }
+
+    /// <inheritdoc cref="Profile.OverridePresets"/>
+    public JsonElement? OverridePresets { get; set; }
 
     /// <summary>
     /// Whether this is the tenant's default profile: at most one row per tenant carries it.

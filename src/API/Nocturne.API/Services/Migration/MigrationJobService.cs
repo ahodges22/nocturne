@@ -2016,6 +2016,21 @@ internal class MigrationJob
             Store = store,
             EnteredBy = doc.Contains("enteredBy") ? doc["enteredBy"].AsString : null,
             LoopSettings = loopSettings,
+            DeviceToken = doc.GetValue("deviceToken", BsonNull.Value) is { IsString: true } deviceToken
+                ? deviceToken.AsString
+                : null,
+            BundleIdentifier = doc.GetValue("bundleIdentifier", BsonNull.Value) is { IsString: true } bundleIdentifier
+                ? bundleIdentifier.AsString
+                : null,
+            TeamID = doc.GetValue("teamID", BsonNull.Value) is { IsString: true } teamID
+                ? teamID.AsString
+                : null,
+            ExpirationDate = doc.GetValue("expirationDate", BsonNull.Value) is { IsString: true } expirationDate
+                ? expirationDate.AsString
+                : null,
+            OverridePresets = doc.TryGetValue("overridePresets", out var presets)
+                ? System.Text.Json.JsonSerializer.SerializeToElement(ToJsonNode(presets))
+                : null,
             IsAPNSProduction = doc.Contains("isAPNSProduction") && doc["isAPNSProduction"].IsBoolean
                 ? doc["isAPNSProduction"].AsBoolean
                 : null,

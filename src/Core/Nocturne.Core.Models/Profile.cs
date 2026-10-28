@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Nocturne.Core.Models.Serializers;
 using Nocturne.Core.Models.Attributes;
@@ -116,6 +117,45 @@ public class Profile
     [JsonPropertyName("isAPNSProduction")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? IsAPNSProduction { get; set; }
+
+    /// <summary>
+    /// APNs device token of the uploading Trio app. LoopFollow reads it to send Trio Remote Control commands.
+    /// </summary>
+    [JsonPropertyName("deviceToken")]
+    [JsonConverter(typeof(FlexibleStringConverter))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DeviceToken { get; set; }
+
+    /// <summary>
+    /// Bundle identifier of the uploading Trio app, the APNs topic for its remote commands.
+    /// </summary>
+    [JsonPropertyName("bundleIdentifier")]
+    [JsonConverter(typeof(FlexibleStringConverter))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? BundleIdentifier { get; set; }
+
+    /// <summary>
+    /// Apple team ID that signed the uploading Trio app.
+    /// </summary>
+    [JsonPropertyName("teamID")]
+    [JsonConverter(typeof(FlexibleStringConverter))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? TeamID { get; set; }
+
+    /// <summary>
+    /// When the uploading Trio build expires, as the string Trio sent.
+    /// </summary>
+    [JsonPropertyName("expirationDate")]
+    [JsonConverter(typeof(FlexibleStringConverter))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ExpirationDate { get; set; }
+
+    /// <summary>
+    /// Trio's override presets. Nocturne does not read them, so it keeps them as sent, whatever their shape.
+    /// </summary>
+    [JsonPropertyName("overridePresets")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public JsonElement? OverridePresets { get; set; }
 
     /// <summary>
     /// Whether this profile is managed by an external service (e.g. Glooko)

@@ -103,6 +103,21 @@ public class TherapySettingsEntity : V4TimeSeriesEntityBase, IProfileScopedEntit
     [Column("is_apns_production")]
     public bool? IsApnsProduction { get; set; }
 
+    [Column("device_token", TypeName = "text")]
+    public string? DeviceToken { get; set; }
+
+    [Column("bundle_identifier", TypeName = "text")]
+    public string? BundleIdentifier { get; set; }
+
+    [Column("team_id", TypeName = "text")]
+    public string? TeamID { get; set; }
+
+    [Column("expiration_date", TypeName = "text")]
+    public string? ExpirationDate { get; set; }
+
+    [Column("override_presets_json", TypeName = "jsonb")]
+    public string? OverridePresetsJson { get; set; }
+
     /// <summary>
     /// Whether this is the default/active profile
     /// </summary>

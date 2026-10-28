@@ -36,6 +36,11 @@ public static class TherapySettingsMapper
                 ? JsonSerializer.Serialize(model.LoopSettings)
                 : null,
             IsApnsProduction = model.IsAPNSProduction,
+            DeviceToken = model.DeviceToken,
+            BundleIdentifier = model.BundleIdentifier,
+            TeamID = model.TeamID,
+            ExpirationDate = model.ExpirationDate,
+            OverridePresetsJson = model.OverridePresets?.GetRawText(),
             IsDefault = model.IsDefault,
             DocumentDefaultProfile = model.DocumentDefaultProfile,
             EnteredBy = model.EnteredBy,
@@ -70,6 +75,11 @@ public static class TherapySettingsMapper
                 entity.LoopSettingsJson
             ),
             IsAPNSProduction = entity.IsApnsProduction,
+            DeviceToken = entity.DeviceToken,
+            BundleIdentifier = entity.BundleIdentifier,
+            TeamID = entity.TeamID,
+            ExpirationDate = entity.ExpirationDate,
+            OverridePresets = MapperHelpers.DeserializeJson<JsonElement?>(entity.OverridePresetsJson),
             IsDefault = entity.IsDefault,
             DocumentDefaultProfile = entity.DocumentDefaultProfile,
             EnteredBy = entity.EnteredBy,
@@ -103,6 +113,11 @@ public static class TherapySettingsMapper
             ? JsonSerializer.Serialize(model.LoopSettings)
             : null;
         entity.IsApnsProduction = model.IsAPNSProduction;
+        entity.DeviceToken = model.DeviceToken;
+        entity.BundleIdentifier = model.BundleIdentifier;
+        entity.TeamID = model.TeamID;
+        entity.ExpirationDate = model.ExpirationDate;
+        entity.OverridePresetsJson = model.OverridePresets?.GetRawText();
         entity.EnteredBy = model.EnteredBy;
         entity.IsExternallyManaged = model.IsExternallyManaged;
         entity.StartDate = model.StartDate;

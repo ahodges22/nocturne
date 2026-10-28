@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using FluentAssertions;
 using Moq;
 using Nocturne.API.Services.Profiles;
@@ -39,6 +41,36 @@ public class ProfileProjectionServiceTests
     }
 
     #region GetCurrentProfileAsync
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GetCurrentProfileAsync_ReturnsTrioFieldsFromTheDocumentHead(bool present)
+    {
+        var fields = JsonNode.Parse(present ? TrioFields : "{}")!;
+        var head = JsonSerializer.Deserialize<TherapySettings>(fields.ToJsonString(), JsonSerializerOptions.Web)!;
+        head.ProfileName = "Head";
+        head.LegacyId = "doc:Head";
+        head.Timestamp = DateTime.UtcNow;
+        var other = CreateTherapySettings(profileName: "Other", legacyId: "doc:Other");
+        other.Timestamp = head.Timestamp.AddDays(-1);
+        _therapyRepo.Setup(r => r.GetDocumentsAsync(1, 0, true, default)).ReturnsAsync([[other, head]]);
+
+        var profile = await _sut.GetCurrentProfileAsync();
+
+        var actual = JsonSerializer.SerializeToNode(profile)!;
+        foreach (var field in JsonNode.Parse(TrioFields)!.AsObject())
+        {
+            JsonNode.DeepEquals(actual[field.Key], fields[field.Key]).Should().BeTrue(field.Key);
+            actual.AsObject().ContainsKey(field.Key).Should().Be(present, field.Key);
+        }
+    }
+
+    private const string TrioFields = """
+        {"deviceToken":"trio-token","bundleIdentifier":"org.triodocs.Trio","teamID":"TRIOTEAM42",
+         "expirationDate":"2027-01-02T03:04:05.123456+05:30",
+         "overridePresets":[{"name":"Exercise","duration":45.5,"percentage":80,"target":110},{"name":"Name only"}]}
+        """;
 
     [Theory]
     [InlineData(true)]
